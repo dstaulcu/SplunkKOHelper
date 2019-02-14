@@ -1,10 +1,9 @@
-# SplunkKOTranstionWindowsv5
-Job aide to help transition splunk reports and dashboard to support splunk app for windows v5
-
+# SplunkKOHelper
+Job aide to help transition splunk reports and dashboards to support splunk app for windows v5
 
 Synopsis:
 -----------------------------------
-Powershell script providing audible notifications of application crash or hang incidents.
+Users REST api to find searches and views having legacy sourcetype references.  Drafts prescribed changes for user and displays proposed changes to source in windiff application.  If changes are accepted, places new source in clipboard and opens view or dashboard for editing in browser where changes can be inserted and saved.  
 
 ![alt tag](https://github.com/dstaulcu/SplunkKOTranstionWindowsv5/blob/master/screencaps/snap1.JPG)
 

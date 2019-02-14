@@ -8,7 +8,7 @@ Employs Splunk REST API to find searches and views having legacy wineventlog sou
 
 ![alt tag](https://github.com/dstaulcu/SplunkKOHelper/blob/master/screencaps/snap1.JPG)
 
-Transformations are drafted automatically and differences are displayed in windiff application.  Note, if the transformation was not perfect, you can edit the right side file through windiff to fine tune changes.
+Transformations are drafted automatically and differences are displayed in windiff application.  Note: If the auto-transformation was not perfect, you can edit the right side file through windiff to fine tune changes.
 
 ![alt tag](https://github.com/dstaulcu/SplunkKOHelper/blob/master/screencaps/snap2.JPG)
 

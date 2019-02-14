@@ -1,13 +1,14 @@
 # SplunkKOHelper
-Job aide to help transition splunk reports and dashboards to support splunk app for windows v5
+Powershell script to orchestrate identification and correction of reports and dashboards requring updates to support Splunk app for Windows v5 deployment.
 
 Synopsis:
 -----------------------------------
-Employs Splunk REST API to find searches and views having legacy wineventlog sourcetype references.  User can select one or more searches to review.
+
+Employs Splunk REST API to find searches and views having legacy wineventlog sourcetype references.  User can select one or more knowledge objects to review.
 
 ![alt tag](https://github.com/dstaulcu/SplunkKOHelper/blob/master/screencaps/snap1.JPG)
 
-Source changes are drafted and line changes are are displayed in windiff application.  Note, if the transformation was not perfect, you can edit the right side file through windiff to fine tune changes.
+Transformations are drafted automatically and differences are displayed in windiff application.  Note, if the transformation was not perfect, you can edit the right side file through windiff to fine tune changes.
 
 ![alt tag](https://github.com/dstaulcu/SplunkKOHelper/blob/master/screencaps/snap2.JPG)
 
@@ -15,7 +16,7 @@ If changes are accepted, new source is placed in clipbard.
 
 ![alt tag](https://github.com/dstaulcu/SplunkKOHelper/blob/master/screencaps/snap3.JPG)
 
-The view or dashboard for editing in browser where changes can be pasted from clipboard and saved.  
+The view or dashboard is then automatically opened for editing in a new browser window where changes can be pasted from clipboard and saved.  
 
 ![alt tag](https://github.com/dstaulcu/SplunkKOHelper/blob/master/screencaps/snap4.JPG)
 

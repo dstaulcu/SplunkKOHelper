@@ -3,7 +3,7 @@ Job aide to help transition splunk reports and dashboards to support splunk app 
 
 Synopsis:
 -----------------------------------
-Users REST api to find searches and views having legacy sourcetype references.  Drafts prescribed changes for user and displays proposed changes to source in windiff application.  If changes are accepted, places new source in clipboard and opens view or dashboard for editing in browser where changes can be inserted and saved.  
+Employs REST api to find searches and views having legacy wineventlog sourcetype references.  Drafts prescribed changes for user and displays proposed changes to source in windiff application.  If changes are accepted, places new source in clipboard and opens view or dashboard for editing in browser where changes can be inserted and saved.  
 
 ![alt tag](https://github.com/dstaulcu/SplunkKOHelper/blob/master/screencaps/snap1.JPG)
 

@@ -150,12 +150,12 @@ if (!$Selected) {
         $this_item_detail = $records | ?{$_.id -eq $item.id}
 
         # write orig content to a file
-        $origfile = "$($env:temp)\$($this_item_detail.title).orig"
+        $origfile = "$($env:temp)\kodata.orig"
         if (Test-Path -Path $origfile) { Remove-Item -Path $origfile -Force }
         Add-Content -Path $origfile -Value $this_item_detail.data
 
         # write new content to a file
-        $newfile = "$($env:temp)\$($this_item_detail.title).new"
+        $newfile = "$($env:temp)\kodata.new"
         if (Test-Path -Path $newfile) { Remove-Item -Path $newfile -Force }
         Add-Content -Path $newfile -Value $this_item_detail.data_new
 

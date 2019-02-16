@@ -81,7 +81,7 @@ $theSearch = '| rest /servicesNS/-/-/data/ui/views splunk_server=local
     | rename eai:acl.app as appName, eai:acl.owner as owner, qualifiedSearch as data 
     | fields type, appName, sharing, owner, title, updated, data, id
         ]
-| regex data="(?msi)sourcetype\s?=\s?\"(xml)?wineventlog:[^\"]+\"" 
+| regex data="(?msi)sourcetype\s?=\s?(\"(xml)?wineventlog:[^\"]+\"|(xml)?wineventlog:[^\s]+)" 
 | sort 0 appName, type, title'
 
 # perform the search and return results as object 
@@ -95,7 +95,7 @@ $results = ConvertFrom-Csv -InputObject $results
 
 
 # enumerate knowledge objects having text of concern
-$Pattern = '(?i)(sourcetype\s?=\s?\"(xml)?wineventlog:[^\"]+\")'
+$Pattern = '(?i)(sourcetype\s?=\s?(\"(xml)?wineventlog:[^\"]+\"|(xml)?wineventlog:[^\s]+))'
 $records = @()
 foreach ($result in $results) {
 

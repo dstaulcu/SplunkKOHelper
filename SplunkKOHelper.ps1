@@ -6,6 +6,7 @@
    -Drafts text replacement and displays line changes in windiff application
    -If user accepts line changes, new content is placed in clipboard
    -Opens selected view/search for editing in browser, where clipboard content and be pasted and saved.
+.Notes:
 #>
 
 function get-splunk-search-results {
@@ -163,14 +164,14 @@ if (!$Selected) {
             # build url which will enable open of knowledge object in edit mode
 
             if ($this_item_detail.type -eq "search") {
-                $url_endpoint =  "http://$($server):8000/en-US/app/$($this_item_detail.appName)/search?s="
+                $url_endpoint =  "https://$($server):8000/en-US/app/$($this_item_detail.appName)/search?s="
                 $url_querystring = "/servicesNS/$($this_item_detail.owner)/$($this_item_detail.appName)/saved/searches/"
                 $url_querystring += [System.Web.HttpUtility]::UrlEncode("$($this_item_detail.title)")               
                 $edit_url = "$($url_endpoint)$($url_querystring)"
             }
 
             if ($this_item_detail.type -eq "views") {
-                $url_endpoint =  "http://$($server):8000/en-US/manager/$($this_item_detail.appName)/data/ui/views/$($this_item_detail.title)?"
+                $url_endpoint =  "https://$($server):8000/en-US/manager/$($this_item_detail.appName)/data/ui/views/$($this_item_detail.title)?"
                 $url_querystring = "action=edit&ns=$($this_item_detail.appName)&uri=/servicesNS/$($this_item_detail.owner)/$($this_item_detail.appName)/data/ui/views/"
                 $url_querystring += $url_querystring = [System.Web.HttpUtility]::UrlEncode("$($this_item_detail.title)")
                 $edit_url = "$($url_endpoint)$($url_querystring)"

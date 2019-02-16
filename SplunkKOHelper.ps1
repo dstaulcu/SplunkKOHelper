@@ -6,13 +6,6 @@
    -Drafts text replacement and displays line changes in windiff application
    -If user accepts line changes, new content is placed in clipboard
    -Opens selected view/search for editing in browser, where clipboard content and be pasted and saved.
-.ChangeLog
-   -2019-02-12 - initial support for public views
-   -2019-02-13 - initial support for public searches
-   -2019-02-13 - added support for saved searches or views which are public or private
-
-.TODO
-   - Handle condition where sourcetype value has not been quoted (sourcetype=WinEventLog:Windows*PowerShell, sourcetype=WinEventLog:Application)
 #>
 
 function get-splunk-search-results {
@@ -99,7 +92,7 @@ $Pattern = '(?i)(sourcetype\s?=\s?(\"(xml)?wineventlog:[^\"]+\"|(xml)?wineventlo
 $records = @()
 foreach ($result in $results) {
 
-    # identify instances of the text of concern with object data
+    # identify instances of the text of concern within object data
     $Matches = GetMatches -content $result.data -regex $Pattern
 
     if ($Matches) {
@@ -133,11 +126,12 @@ foreach ($result in $results) {
                 'matches' = $Matches          
                 'data_new' = $data_new
             }
+
+            $records += New-Object -TypeName PSObject -Property $Record
         }
 
-        $records += New-Object -TypeName PSObject -Property $Record
-
     }
+
 }
 
 
@@ -147,7 +141,7 @@ if (!$Selected) {
     exit 
 } else {
     foreach ($item in $selected) {
-        $this_item_detail = $records | ?{$_.id -eq $item.id}
+        $this_item_detail = $records | ?{$_.id -eq $item.id} | Select-Object -Unique
 
         # write orig content to a file
         $origfile = "$($env:temp)\kodata.orig"

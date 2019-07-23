@@ -1,4 +1,4 @@
-﻿# https://docs.splunk.com/Documentation/Splunk/7.2.6/RESTTUT/RESTsearches
+# https://docs.splunk.com/Documentation/Splunk/7.2.6/RESTTUT/RESTsearches
  
  function create-searchjob {
  
@@ -241,7 +241,7 @@ foreach ($item in $results_3) {
             } else {
                 $Status = "OK"
                 $Message = "matching lookup has more than 0 records"
-                write-host "`tFound matching record having $($lookuprecord.recordCount) entries."                
+                write-host "`tFound matching record having $($lookuprecord.recordCount) entries." -ForegroundColor Green
             }
 
         }
@@ -271,3 +271,46 @@ foreach ($item in $results_3) {
 }
 
 $findings | Select-Object -Property appName, title, type, sharing, lookup_name, status, message, owner, updated, id, data | Sort-Object -Property appName, title, type | Out-GridView -Title "Findings"
+
+
+# find lookups that are not referenced by any searches/views
+$LookupReferences = $results_3 | Group-Object -Property lookup_name 
+$lookupRecords2 = @()
+foreach ($lookupRecord in $lookupRecords) {
+
+    $MatchFound = $False
+    foreach ($LookupReference in $LookupReferences) {
+        if ($lookupRecord.title -eq $LookupReference.Name) {
+            $MatchFound = $True
+            $LookupReferenceCount = $LookupReference.Count
+        }
+    }
+    if ($MatchFound -eq $False) {
+            $LookupReferenceCount = 0
+    }
+
+    $info = @{
+        "eai:acl.app" = $lookupRecord.'eai:acl.app'
+        "eai:acl.sharing" = $lookupRecord.'eai:acl.sharing'
+        "eai:acl.perms.read" = $lookupRecord.'eai:acl.perms.read'
+        "title" = $lookupRecord.title
+        "type" = $lookupRecord.type
+        "AutoLookup" = $lookupRecord.AutoLookup
+        "object" = $lookupRecord.object
+        "author" = $lookupRecord.author
+        "eai:acl.owner" = $lookupRecord.'eai:acl.owner'
+        "id" = $lookupRecord.id
+        "marker" = $lookupRecord.marker
+        "recordCount" = $lookupRecord.recordCount
+        "recordSetSize" = $lookupRecord.recordSetSize                                         
+        "recordSetHash" = $lookupRecord.recordSetHash
+        "referenceCount" = $LookupReferenceCount
+    }
+
+    $lookupRecords2 += New-Object -TypeName PSObject -Property $info
+    
+            
+    write-host "Lookup record $($lookupRecord.title) was referenced $($LookupReferenceCount) times."
+}
+
+$lookupRecords2 | Select-Object -Property eai:acl.app, eai:acl.sharing, eai:acl.perms.read, title, type, AutoLookup, object, recordCount, recordSetSize, recordSetHash, referenceCount, author, eai:acl.owner, id, marker | Sort-Object -Property RecordSetSize -Descending | Out-GridView -Title "Lookup Info"

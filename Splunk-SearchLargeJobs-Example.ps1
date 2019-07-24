@@ -1,4 +1,11 @@
-﻿# https://docs.splunk.com/Documentation/Splunk/7.2.6/RESTTUT/RESTsearches
+<# To Do
+# delete the job in splunk
+# abstract everything to a set of functions to simplify main
+# move print statements to verbose logging
+#>
+
+
+# https://docs.splunk.com/Documentation/Splunk/7.2.6/RESTTUT/RESTsearches
 # http://dev.splunk.com/view/python-sdk/SP-CAAAEE5#searchjobparams
 
 # define splunk instance variables to use
@@ -81,7 +88,7 @@ if (!($cred)) { $cred = Get-Credential -Message "enter splunk cred" -UserName "a
 $theSearch = '| inputlookup majestic_million.csv'
 
 # initiate the job
-write-host (get-date) " - Initiating search job with search text [$($theSearch)]."
+write-host (get-date) "- Initiating search job with search text [$($theSearch)]."
 
 $searchjob = create-searchjob -server $server -port $port -cred $cred -search $theSearch
  
@@ -100,12 +107,12 @@ do
     $dispatchState = [string]($jobstatus.entry.content.dict.key | ?{$_.Name -eq "dispatchState"})."#text"
 
     # show status of the job
-    write-host (get-date) " - Current dispatch sid $($searchjob.response.sid) has status [$($dispatchState)]."     
+    write-host (get-date) "- Current dispatch sid $($searchjob.response.sid) has status [$($dispatchState)]."     
 }
 until ($dispatchState -match "(FAILED|DONE)")
 
 if ($dispatchState -match "FAILED") {
-    write-host (get-date) " - Job execution failed. Exiting."
+    write-host (get-date) "- Job execution failed. Exiting."
 } else {
 
     # now that the job is DONE, retrieve other job properties of interest:
@@ -116,13 +123,7 @@ if ($dispatchState -match "FAILED") {
     $jobResultrunDuration = [float]($jobstatus.entry.content.dict.key | ?{$_.Name -eq "runDuration"})."#text"
     $jobttl = [int]($jobstatus.entry.content.dict.key | ?{$_.Name -eq "ttl"})."#text"
 
-    Write-host "Job summary:"
-    write-host "`tJobSid: $($jobSid)"
-    write-host "`tjobEventCount: $($jobEventCount)"
-    write-host "`tjobResultCount: $($jobResultCount)"
-    write-host "`tjobResultDiskUsage: $($jobResultDiskUsage)"
-    write-host "`tjobResultrunDuration: $($jobResultrunDuration)"
-    write-host "`tjobttl: $($jobttl)"
+    write-host (get-date) "- Job completed with EventCount=$($jobEventCount) ResultCount=$($jobResultCount) DiskUsage=$($jobResultDiskUsage) RunDuration=$($jobResultrunDuration) ttl=$($jobttl)"
 
     <#
     # now we have to retrieve the job results. Since this is REST, there are limits (default 50,000) [$maxResultRowsLimit] to count of records that can be returned.
@@ -135,28 +136,65 @@ if ($dispatchState -match "FAILED") {
 
     # create a tmp file to append results to (better than appending an object in memory)
     $tmpString = Get-Random -Minimum 10000 -Maximum 99999
-    $tmpFile = "$env:temp\SplunkSearchResultsTemp$($tmpString).csv"
-    if (Test-Path -Path $tmpFile) { Remove-Item -Path $tmpFile -Force }
+    $tmpFileName = "SplunkSearchResultsTemp$($tmpString).csv"
+    $tmpFilePath = $env:temp
+    if (Test-Path -Path "$($tmpFilePath)\$($tmpFileName)") { Remove-Item -Path "$($tmpFilePath)\$($tmpFileName)" -Force }
     
+    $downloadPart = 1
     do
     {
         # download the data in batches       
-        write-host (get-date) " - Downloading job sid $($jobSid) result data offset [$($totalResultsReturned) to $($totalResultsReturned + $maxResultRowsLimit)]..."
+        $downloadPartFile = "$($tmpFilePath)\$($tmpFileName).part$($downloadPart)"
+        write-host (get-date) "- Downloading up to $($maxResultRowsLimit) rows offset from $($totalResultsReturned) to $($downloadPartFile)"
         $jobresults = get-searchjob -server $server -port $port -cred $cred -jobsid $searchjob.response.sid -offset $totalResultsReturned
 
-
-        # convert the in-memory chars to CSV and append to TMP file        
-        $jobresults | ConvertFrom-Csv | Export-Csv -NoTypeInformation -Append -Path $tmpFile
+        $jobresults | ConvertFrom-Csv | Export-Csv -NoTypeInformation -Path $downloadPartFile
     
         $totalResultsReturned += $maxResultRowsLimit
+        $downloadPart += 1
     
     }
     until ($totalResultsReturned -ge $totalResultsExpected)
 
-    # import the file written to disk as csv file
-    $jobresults_csv = import-csv -Path $tmpFile
+    # now we need to coalesce the download parts
+    $PartFiles = Get-ChildItem -Path $tmpFilePath -Filter "$($tmpFileName).part*" | Sort-Object -Property LastWriteTime
 
-    write-host "Results array count $($jobresults_csv.count)."
+    foreach ($partfile in $partfiles) {
+
+        write-host (get-date) "- Collating $($partfile.name) into $($tmpFileName)."
+
+        # commit partfile 1 in it's entirety
+        if ($partfile.name -match "\.part1$") {
+
+            $partfile.FullName | Rename-Item -NewName "$($tmpFilePath)\$($tmpFileName)"
+        } else {
+            # commit all but line 1 in other partfiles
+            $skip = 1
+
+            # create the FileStream and StreamWriter objects
+            $ins = New-Object System.IO.StreamReader($partfile.FullName)
+            $fs = New-Object IO.FileStream "$($tmpFilePath)\$($tmpFileName)" ,'Append','Write','Read'
+            $outs = New-Object System.IO.StreamWriter($fs)
+
+            try {
+                # Skip the first N lines, but allow for fewer than N, as well
+                for( $s = 1; $s -le $skip -and !$ins.EndOfStream; $s++ ) {
+                    # waste the top line
+                    $ins.ReadLine() | Out-Null
+                }
+                while( !$ins.EndOfStream ) {
+                    $outs.writeline( $ins.ReadLine() )
+                }
+            }
+            finally {
+            $outs.Close()
+            $ins.close()
+            $fs.Dispose()
+            }
+        }
+        $partfile | Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+    write-host (get-date) "- Operation complete.  Result file is $($tmpFilePath)\$($tmpFileName)"
 
 }
 
